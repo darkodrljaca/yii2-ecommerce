@@ -24,16 +24,45 @@ $this->params['breadcrumbs'][] = $this->title;
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
-
-            'id',
-            'name',
-            'description:ntext',
-            'image',
-            'price',
-            //'status',
-            //'created_at',
-            //'updated_at',
+            // ['class' => 'yii\grid\SerialColumn'],
+            [
+                'attribute' => 'id',
+                'contentOptions' => [
+                    'style' => 'width: 60px'
+                ]
+            ],
+            [
+                'label' => 'Image',
+                'attribute' => 'image',
+                'content' => function($model) {
+        /** @var \common\models\Product $model */
+                    return \yii\bootstrap4\Html::img($model->getImageUrl(), ['style' => 'width: 50px']);
+                }
+            ],
+            'name',                        
+            'price:currency',
+             // 'status',       
+            [
+                'attribute' => 'status',
+                'content' => function($model) {
+                                /** @var \common\models\Product $model */
+                                return \yii\bootstrap4\Html::tag('span', $model->status ? 'Active' : 'Draft', [
+                                    'class' => $model->status ? 'badge badge-success' : 'badge badge-danger'
+                                ]);
+                                
+                             }
+            ],
+            [
+                'attribute' => 'created_at',
+                'format' => ['datetime'],
+                'contentOptions' => ['style' => 'white-space: nowrap']
+            ],
+            [
+                'attribute' => 'updated_at',
+                'format' => ['datetime'],
+                'contentOptions' => ['style' => 'white-space: nowrap']
+            ],                                        
+            
             //'created_by',
             //'updated_by',
 
