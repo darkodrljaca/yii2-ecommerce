@@ -6,7 +6,8 @@ use frontend\models\VerifyEmailForm;
 use Yii;
 use yii\base\InvalidArgumentException;
 use yii\web\BadRequestHttpException;
-use yii\web\Controller;
+// use yii\web\Controller;
+use frontend\base\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use common\models\LoginForm;
@@ -232,4 +233,7 @@ class SiteController extends Controller
             'model' => $model
         ]);
     }
+    
+    
+    
 }
