@@ -8,7 +8,7 @@ use frontend\base\Controller;
 use common\models\CartItem;
 use common\models\Product;
 use yii\web\Response;
-
+use yii\filters\VerbFilter;
 
 
 class CartController extends Controller {
@@ -25,6 +25,13 @@ class CartController extends Controller {
                 'formats' => [
                     'application/json' => Response::FORMAT_JSON,
                 ],
+            ],
+            [
+                // delete je moguc samo uz POST metod:
+                'class' => VerbFilter::class,
+                'actions' => [
+                    'delete' => ['POST', 'DELETE'],
+                ]
             ]
         ];
 
