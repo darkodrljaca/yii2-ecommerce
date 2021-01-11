@@ -5,6 +5,9 @@ $(function() {
     
     // "add to cart" buttons:
     const $addToCart = $('.btn-add-to-cart');
+    
+    const $itemQuantities = $('.item-quantity');
+    
     // listen on button click:
     $addToCart.click(ev => {
         ev.preventDefault(); // ovo je da posle klika 'add to card' ekran ne ode gore svaki put
@@ -25,6 +28,20 @@ $(function() {
                 $cartQuantity.text(parseInt($cartQuantity.text() || 0)+1);
             }
         })
+    });
+    
+    $itemQuantities.change(ev => {
+        const $this = $(ev.target);
+        let $tr = $this.closest('tr');
+        const id = $tr.data('id');
+        $.ajax({
+            method: 'post',
+            url: $tr.data('url'),
+            data: {id, quantity: $this.val()},
+            success: function(totalQuantity) {
+                $cartQuantity.text(totalQuantity);
+            }
+        });
     });
 });
 

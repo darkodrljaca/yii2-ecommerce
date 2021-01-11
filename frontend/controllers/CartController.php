@@ -86,14 +86,16 @@ class CartController extends Controller {
                 'total_price' => $product->price
             ];
 
-            $cartItems = Yii::$app->session->get(CartItem::SESSION_KEY, []);            
+            $cartItems = Yii::$app->session->get(CartItem::SESSION_KEY, []);
             $id_ = array_column($cartItems, 'id');
-            $found_key = array_search($id, $id_);            
-            // zato sto $found_key moze da bude i integer koji je napr. nula i to onda znaci da je nasao index nula:
-            if(is_bool($found_key) === true && !$found_key) {                            
+            $found_key = array_search($id, $id_);
+            // $found_key moze da bude tipa boolean i tipa integer. Napr. ako je tipa integer i vrednost je nula to znaci
+            // da je nasao podatak u array index = 0 sto je ok. Ako nije nasao nista vraca podatak tipa booelan vrednosti
+            // false:
+            if(is_bool($found_key) === true && !$found_key) {
                 array_push($cartItems, $cartItem);
             } else {
-                $cartItems[$found_key]['quantity'] = $cartItems[$found_key]['quantity'] + 1;                 
+                $cartItems[$found_key]['quantity'] = $cartItems[$found_key]['quantity'] + 1;
             }
             Yii::$app->session->set(CartItem::SESSION_KEY, $cartItems);
         } else {
@@ -140,6 +142,40 @@ class CartController extends Controller {
         }
 
         return $this->redirect(['index']);
+    }
+
+    public function actionChangeQuantity() {
+
+        $id = Yii::$app->request->post('id');
+        $product = Product::find()->id($id)->published()->one();
+        if(!$product) {
+            throw new \yii\web\NotFoundHttpException("Product does not exist");
+        }
+
+        $quantity = Yii::$app->request->post('quantity');
+        
+        if($quantity >= 1) {
+            if(isGuest()) {
+                $cartItems = Yii::$app->session->get(CartItem::SESSION_KEY, []);
+                foreach($cartItems as &$cartItem) {
+                  if($cartItem['id'] === $id) {
+                    $cartItem['quantity'] = $quantity;
+                    break;
+                  }
+                }
+                Yii::$app->session->set(CartItem::SESSION_KEY, $cartItems);
+            } else {
+                $cartItem = CartItem::find()->userId(currUserId())->productId($id)->one();
+                if($cartItem) {
+                  $cartItem->quantity = $quantity;
+                  $cartItem->save();
+                }
+            }
+            
+        }                
+        
+        return CartItem::getTotalQuantityForUser(currUserId());
+        
     }
 
 }
