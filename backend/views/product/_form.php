@@ -42,7 +42,7 @@ use dosamigos\ckeditor\CKEditor;
 
     <?= $form->field($model, 'price')->textInput([
         'maxlength' => true,
-        'type' => 'number'
+       // 'type' => 'number'
         ]) ?>
 
     <?= $form->field($model, 'status')->checkbox() ?>

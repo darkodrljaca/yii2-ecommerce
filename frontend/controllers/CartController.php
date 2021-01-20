@@ -11,6 +11,14 @@ use yii\web\Response;
 use yii\filters\VerbFilter;
 use common\models\OrderAddress;
 use common\models\Order;
+use PayPalCheckoutSdk\Core\PayPalHttpClient;
+use PayPalCheckoutSdk\Core\SandboxEnvironment;
+use PayPalCheckoutSdk\Payments\AuthorizationsGetRequest;
+use yii\web\BadRequestHttpException;
+use PayPalCheckoutSdk\Orders\OrdersGetRequest;
+use yii\web\NotFoundHttpException;
+use yii\helpers\VarDumper;
+
 
 
 class CartController extends Controller {
@@ -23,7 +31,7 @@ class CartController extends Controller {
 
                 // Posto metoda actionAdd() vraca array app.js funckciji a treba JSON, neophodno je:
                 'class' => \yii\filters\ContentNegotiator::class,
-                'only' => ['add'], // metoda actionAdd()
+                'only' => ['add', 'create-order', 'submit-payment'], // metoda actionAdd() i metoda actionCreateOrder
                 'formats' => [
                     'application/json' => Response::FORMAT_JSON,
                 ],
@@ -33,6 +41,7 @@ class CartController extends Controller {
                 'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['POST', 'DELETE'],
+                    'create-order' => ['POST'],
                 ]
             ]
         ];
@@ -40,15 +49,9 @@ class CartController extends Controller {
     }
 
     public function actionIndex() {
-
-        if(Yii::$app->user->isGuest) {
-            // get the items from session
-            // ovo na kraju ", []", znaci da ako ne postoji daj prazan array
-            $cartItems = Yii::$app->session->get(CartItem::SESSION_KEY, []);
-        } else {
-            $cartItems = CartItem::getItemsForUser(currUserId());
-        }
-
+        
+        $cartItems = CartItem::getItemsForUser(currUserId());
+        
         return $this->render('index', [
 
             'items' => $cartItems
@@ -170,8 +173,34 @@ class CartController extends Controller {
     
     public function actionCheckout() {
         
+        $cartItems = CartItem::getItemsForUser(currUserId());
+        $productQuantity = CartItem::getTotalQuantityForUser(currUserId());
+        $totalPrice = CartItem::getTotalPriceForUser(currUserId());
+        
+        if(empty($cartItems)) {
+            return $this->redirect([Yii::$app->homeUrl]);
+        }
         
         $order = new Order();
+        $order->total_price = $totalPrice;
+        $order->status = Order::STATUS_DRAFT;
+        $order->created_at = time();
+        $order->created_by = currUserId(); // moze biti i null ako kupuje neko ko se nije registrovao  
+        $transaction = Yii::$app->db->beginTransaction();
+        
+        if($order->load(Yii::$app->request->post()) 
+                && $order->save() 
+                && $order->saveAddress(Yii::$app->request->post())        
+                && $order->saveOrderItems()) {
+            $transaction->commit();                         
+            
+            CartItem::clearCartItems(currUserId());
+                                    
+            return $this->render('pay-now',[
+                'order' => $order,            
+            ]);        
+        }
+        
         $orderAddress = new OrderAddress();
         
         if(!isGuest()) {
@@ -191,13 +220,8 @@ class CartController extends Controller {
             $orderAddress->state = $userAddress->state;
             $orderAddress->country = $userAddress->country;
             $orderAddress->zipcode = $userAddress->zipcode;
-            $cartItems = CartItem::getItemsForUser(currUserId());
-        } else {
-            $cartItems = Yii::$app->session->get(CartItem::SESSION_KEY, []);
-        }
-        
-        $productQuantity = CartItem::getTotalQuantityForUser(currUserId());
-        $totalPrice = CartItem::getTotalPriceForUser(currUserId());
+            
+        } 
         
         return $this->render('checkout', [
             'order' => $order,
@@ -209,5 +233,113 @@ class CartController extends Controller {
         
         
     }
+    /*
+    public function actionSubmitOrder() {
+        
+        // $transactionId = Yii::$app->request->post('transactionId');
+        $status = Yii::$app->request->post('status');
+        
+        $totalPrice = CartItem::getTotalPriceForUser(currUserId());
+        if($totalPrice === null) {
+            throw new \yii\web\BadRequestHttpException("Cart is empty");
+        }
+        
+        $order = new Order();
+        
+        $order->total_price = $totalPrice;
+        $order->status = Order::STATUS_DRAFT;
+        $order->created_at = time();
+        $order->created_by = currUserId(); // moze biti i null ako kupuje neko ko se nije registrovao  
+        $transaction = Yii::$app->db->beginTransaction();
+        if($order->load(Yii::$app->request->post()) 
+                && $order->save() 
+                && $order->saveAddress(Yii::$app->request->post())        
+                && $order->saveOrderItems()) {
+            $transaction->commit(); 
+            
+            CartItem::clearCartItems(currUserId());
+            
+            $cartItems = CartItem::getItemsForUser(currUserId());
+            $productQuantity = CartItem::getTotalQuantityForUser(currUserId());
+            $totalPrice = CartItem::getTotalPriceForUser(currUserId());
+            
+            return $this->render('pay-now',[
+                'order' => $order,
+                'orderAddress' => $order->orderAddress,
+                'cartItems' => $cartItems,
+                'productQuantity' => $productQuantity,
+                'totalPrice' => $totalPrice 
+            ]);
+            
+        } else {
+            $transaction->rollBack();
+            return [
+                'success' => false,
+                'errors' => $order->errors
+            ];
+        }
+        
+    }
+    */
+    
+    public function actionSubmitPayment($orderId) {
+        
+        
+        $where = ['id' => $orderId, 'status' => Order::STATUS_DRAFT];
+        if(!isGuest()) {
+            $where['created_by'] = currUserId();
+        }
+        $order = Order::findOne($where);
+        if(!$order) {
+            throw new NotFoundHttpException();
+        }
+                
+        $req = Yii::$app->request;
+        $paypalOrderId = $req->post('orderId');        
+        $exists = Order::find()->andWhere(['paypal_order_id' => $paypalOrderId])->exists();
+        if($exists) {
+            throw new BadRequestHttpException();
+        }       
+        
+        $environment = new SandboxEnvironment(Yii::$app->params['paypalClientId'], Yii::$app->params['paypalSecret']);
+        $client = new PayPalHttpClient($environment);
+        $response = $client->execute(new OrdersGetRequest($paypalOrderId));
+        
+        if($response->statusCode === 200) {
+            $order->paypal_order_id = $paypalOrderId;
+            $payedAmount = 0;
+            foreach($response->result->purchase_units as $purchase_unit) {
+                if($purchase_unit->amount->currency_code === 'USD') {
+                    $payedAmount += $purchase_unit->amount->value;
+                }
+            }
+            if($payedAmount === (float)$order->total_price && $response->result->status === 'COMPLETED') {
+                $order->status = Order::STATUS_COMPLETED;
+            }
+            $order->transaction_id = $response->result->purchase_units[0]->payments->captures[0]->id;
+            if($order->save()) {
+                if(!$order->sendEmailToVendor()) {
+                    Yii::error("The email was not sent to the vendor");
+                }  
+                if(!$order->sendEmailToCustomer()) {
+                    Yii::error("The email was not sent to the customer");
+                }
+                                
+                return [
+                    'success' => true
+                ];
+            } else {
+                Yii::error("Order was not saved. Data: " . 
+                        VarDumper::dumpAsString($order->toArray()) . 
+                        ". Errors: " . VarDumper::dumpAsString($order->errors));
+            }
+        }
+        
+        throw new BadRequestHttpException();                        
+        
+    }
+    
+    
+    
 
 }
