@@ -29,9 +29,10 @@ class CartController extends Controller {
         return [
             [
 
-                // Posto metoda actionAdd() vraca array app.js funckciji a treba JSON, neophodno je:
+                // Posto metode actionAdd(), actionCreateOrder(), actionSubmitPayment(), actionChangeQuantity()
+                //  vracaju array app.js funckciji a treba JSON, neophodno je:
                 'class' => \yii\filters\ContentNegotiator::class,
-                'only' => ['add', 'create-order', 'submit-payment'], // metoda actionAdd() i metoda actionCreateOrder
+                'only' => ['add', 'create-order', 'submit-payment', 'change-quantity'], // metoda actionAdd() i metoda actionCreateOrder
                 'formats' => [
                     'application/json' => Response::FORMAT_JSON,
                 ],
@@ -167,7 +168,10 @@ class CartController extends Controller {
             
         }                
         
-        return CartItem::getTotalQuantityForUser(currUserId());
+        return [
+            'quantity' => CartItem::getTotalQuantityForUser(currUserId()),
+            'price' => Yii::$app->formatter->asCurrency(CartItem::getTotalPriceForItemForUser($id, currUserId()))
+        ];
         
     }
     
