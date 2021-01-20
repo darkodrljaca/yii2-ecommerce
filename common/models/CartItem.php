@@ -120,7 +120,12 @@ class CartItem extends \yii\db\ActiveRecord
     
     public static function getItemsForUser($currUserId) {
         
-        return CartItem::findBySql("
+        if(Yii::$app->user->isGuest) {
+            // get the items from session
+            // ovo na kraju ", []", znaci da ako ne postoji daj prazan array
+            $cartItems = Yii::$app->session->get(CartItem::SESSION_KEY, []);
+        } else {
+            $cartItems = CartItem::findBySql("
                                 select
                                 c.product_id as id,
                                 p.image,
@@ -133,6 +138,21 @@ class CartItem extends \yii\db\ActiveRecord
                                 where c.created_by = :userId", ['userId' => $currUserId])
                     ->asArray()
                     ->all();
+        }
+        
+        return $cartItems;
+        
+    }
+    
+    public static function clearCartItems($currUserId) {
+        
+        if(isGuest()) {
+            
+            Yii::$app->session->remove(CartItem::SESSION_KEY);
+            
+        } else {
+            CartItem::deleteAll(['created_by' => $currUserId]);
+        }
         
     }
     
