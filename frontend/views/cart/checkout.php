@@ -60,9 +60,37 @@ use yii\helpers\Url;
                 <h5>Order Summary</h5>
             </div>
             <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($cartItems as $item): ?>
+                        <tr>                            
+                            <td>
+                                <img src="<?php echo common\models\Product::formatImageUrl($item['image']); ?>" 
+                                     style="width: 50px"
+                                     alt="<?php echo $item['name'] ?>">                
+                            </td>
+                            <td><?php echo $item['name']; ?></td>                            
+                            <td>
+                                <?php echo $item['quantity']; ?>
+                            </td>
+                            <td><?php echo Yii::$app->formatter->asCurrency($item['total_price']); ?></td>                            
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <hr>
                 <table class="table">
                     <tr>
-                        <td colspan="2"><?php echo $productQuantity; ?> Products </td>
+                        <td>Total Items</td>
+                        <td class="text-right"><?php echo $productQuantity; ?></td>
                     </tr>
                     <tr>
                         <td>Total Price</td>
