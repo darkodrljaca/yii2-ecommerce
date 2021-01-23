@@ -309,6 +309,8 @@ class CartController extends Controller {
         $client = new PayPalHttpClient($environment);
         $response = $client->execute(new OrdersGetRequest($paypalOrderId));
         
+        // @TODO Save the response information in logs
+        
         if($response->statusCode === 200) {
             $order->paypal_order_id = $paypalOrderId;
             $payedAmount = 0;
@@ -316,7 +318,8 @@ class CartController extends Controller {
                 if($purchase_unit->amount->currency_code === 'USD') {
                     $payedAmount += $purchase_unit->amount->value;
                 }
-            }
+            }                        
+            
             if($payedAmount === (float)$order->total_price && $response->result->status === 'COMPLETED') {
                 $order->status = Order::STATUS_COMPLETED;
             }
