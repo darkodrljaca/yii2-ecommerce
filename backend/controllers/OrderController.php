@@ -57,20 +57,21 @@ class OrderController extends Controller
         ]);
     }
 
-    /**
-     * Creates a new Order model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
-     */
-    public function actionCreate()
+    public function actionUpdate($id)
     {
-        $model = new Order();
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        $model = $this->findModel($id);
+        
+        if(Yii::$app->request->isPost) {
+            $status = Yii::$app->request->post('Order')['status'];
+            $model->status = $status;
+            if(!in_array($status, [Order::STATUS_COMPLETED, Order::STATUS_PAID])) {
+                $model->addError('status', 'Invalid Status');
+            } else if($model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            }            
         }
-
-        return $this->render('create', [
+        
+        return $this->render('update', [
             'model' => $model,
         ]);
     }
