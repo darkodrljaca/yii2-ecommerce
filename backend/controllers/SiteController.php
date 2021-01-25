@@ -70,7 +70,7 @@ class SiteController extends Controller
         $totalProducts = OrderItem::find()
                 ->alias('oi')
                 ->innerJoin(Order::tableName(). ' o',  ' o.id = oi.order_id')
-                ->andWhere(['o.status' => Order::STATUS_COMPLETED])
+                ->andWhere(['o.status' => [Order::STATUS_PAID, Order::STATUS_COMPLETED]])
                 ->sum('quantity');
         $totalUsers = User::find()->andWhere(['status' => User::STATUS_ACTIVE])->count();
         
@@ -79,10 +79,10 @@ class SiteController extends Controller
                                     DATE_FORMAT(FROM_UNIXTIME(o.created_at), '%Y-%m-%d') as date, 
                                     SUM(o.total_price) AS total_price 
                                 FROM orders o
-                                WHERE status = :status
+                                WHERE status IN (".Order::STATUS_PAID.", ".Order::STATUS_COMPLETED.")
                                 GROUP BY DATE_FORMAT(FROM_UNIXTIME(o.created_at), '%Y-%m-%d')
                                 ORDER BY DATE_FORMAT(FROM_UNIXTIME(o.created_at), '%Y-%m-%d')
-                                    ", ['status' => Order::STATUS_COMPLETED])
+                                    ")
                 ->asArray()->all();
         
         // Line Chart
@@ -113,9 +113,9 @@ class SiteController extends Controller
                     SUM(total_price) AS total_price
                 FROM orders o
                 INNER JOIN order_addresses oa ON o.id=oa.order_id
-                WHERE o.status = :status
+                WHERE o.status IN (".Order::STATUS_PAID.", ".Order::STATUS_COMPLETED.")
                 GROUP BY country
-                ", ['status' => Order::STATUS_COMPLETED])
+                ")
                 ->asArray()
                 ->all();
         

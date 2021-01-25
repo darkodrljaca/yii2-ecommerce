@@ -44,7 +44,14 @@ $this->params['breadcrumbs'][] = $this->title;
             //'email:email',
             //'transaction_id',
             //'paypal_order_id',
-            'status:orderStatus',
+            [
+                'attribute' => 'status',
+                'filter' => \yii\bootstrap4\Html::activeDropDownList($searchModel, 'status', Order::getStatusLabels(), [
+                    'class' => 'form-controll',
+                    'prompt' => 'All',
+                ]),
+                'format' => ['orderStatus']
+            ],
             'created_at:datetime',
             //'created_by',
 

@@ -53,6 +53,7 @@ class OrderSearch extends Order
             'query' => $query,            
         ]);
         
+        $dataProvider->sort->defaultOrder = ['created_at' => SORT_DESC];
         $dataProvider->sort->attributes['fullname'] = [
             'label' => 'Full Name',
             'asc' => ['firstname' => SORT_ASC, 'lastname' => SORT_ASC],
@@ -70,6 +71,8 @@ class OrderSearch extends Order
         if($this->fullname) {
             $query->andWhere("CONCAT(firstname, ' ', lastname) LIKE :fullname", ['fullname' => "%{$this->fullname}%"]);
         }
+        
+        
         
 
         // grid filtering conditions
