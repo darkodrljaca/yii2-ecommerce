@@ -7,6 +7,7 @@ use yii\filters\AccessControl;
 // use yii\web\Controller;
 use frontend\base\Controller;
 use yii\web\ForbiddenHttpException;
+use common\models\User;
 
 class ProfileController extends Controller {
     
@@ -72,7 +73,8 @@ class ProfileController extends Controller {
         }
         
         $user = Yii::$app->user->identity;
-        
+        $user->scenario = User::SCENARIO_UPDATE;
+                
         $success = false;
         if($user->load(Yii::$app->request->post()) && $user->save()) {            
             $success = true;                        
