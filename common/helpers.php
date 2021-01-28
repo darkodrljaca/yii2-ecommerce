@@ -11,3 +11,10 @@ function currUserId() {
 function param($key) {
   return Yii::$app->params[$key];
 }
+
+// debugger:
+function hh($data)
+{
+    yii\helpers\VarDumper::dump($data, 10, true);
+    Yii::$app->end();
+}
