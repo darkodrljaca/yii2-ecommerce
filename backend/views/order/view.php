@@ -19,7 +19,7 @@ $orderAddress = $model->orderAddress;
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <p>        
+    <p>
         <?= Html::a('Delete', ['delete', 'id' => $model->id], [
             'class' => 'btn btn-danger',
             'data' => [
@@ -40,14 +40,14 @@ $orderAddress = $model->orderAddress;
             'email:email',
             'transaction_id',
             'paypal_order_id',
-            'created_at:datetime',            
+            'created_at:datetime',
         ],
     ]) ?>
-    
+
     <h4>Address</h4>
     <?= DetailView::widget([
         'model' => $orderAddress,
-        'attributes' => [            
+        'attributes' => [
             'address',
             'city',
             'state',
@@ -55,7 +55,7 @@ $orderAddress = $model->orderAddress;
             'zipcode'
         ],
     ]) ?>
-    
+
     <h4>Order Items</h4>
     <table class="table table-sm">
         <thead>
@@ -71,7 +71,7 @@ $orderAddress = $model->orderAddress;
             <?php foreach ($model->orderItems as $item): ?>
             <tr>
                 <td>
-                    <img src="<?php echo $item->product->getImageUrl(); ?>"
+                    <img src="<?php echo $item->product ? $item->product->getImageUrl(): \common\models\Product::formatImageUrl(null); ?>"
                          style="width: 50px;"
                     >
                 </td>
@@ -83,6 +83,6 @@ $orderAddress = $model->orderAddress;
         <?php endforeach;  ?>
         </tbody>
     </table>
-    
+
 
 </div>
