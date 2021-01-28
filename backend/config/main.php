@@ -38,12 +38,14 @@ return [
             'errorAction' => 'site/error',
         ],
         'assetManager' => [
+          // 'appendTimestamp' => true, da bi se pojavila strelica za sort u GridView, posto je css cache-ovan ne bi se videlo prilikom klika... 
+            'appendTimestamp' => true,
             'bundles' => [
-           // completely disable bootstrap3:     
+           // completely disable bootstrap3:
             \yii\bootstrap4\BootstrapAsset::class => false
             ]
         ],
-        
+
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
@@ -51,7 +53,7 @@ return [
             'rules' => [
             ],
         ],
-        
+
     ],
     'params' => $params,
 ];
