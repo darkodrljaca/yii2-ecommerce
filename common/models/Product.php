@@ -3,6 +3,7 @@
 namespace common\models;
 
 use Yii;
+use yii\helpers\FileHelper;
 
 /**
  * This is the model class for table "{{%products}}".
@@ -25,13 +26,13 @@ use Yii;
  */
 class Product extends \yii\db\ActiveRecord
 {
-    
+
     /*
-     * @var \yii\web\UploadedFile 
+     * @var \yii\web\UploadedFile
      */
-    
+
     public $imageFile;
-    
+
     /**
      * {@inheritdoc}
      */
@@ -39,9 +40,9 @@ class Product extends \yii\db\ActiveRecord
     {
         return '{{%products}}';
     }
-    
+
     public function behaviors() {
-        
+
         return [
             \yii\behaviors\TimestampBehavior::class,
             \yii\behaviors\BlameableBehavior::class
@@ -87,23 +88,23 @@ class Product extends \yii\db\ActiveRecord
     }
 
     /**
-     * Gets query for [[CartItems]].
+     * Gets query for [[CartItem]].
      *
-     * @return \yii\db\ActiveQuery|\common\models\query\CartItemsQuery
+     * @return \yii\db\ActiveQuery|\common\models\query\CartItemQuery
      */
     public function getCartItems()
     {
-        return $this->hasMany(CartItems::className(), ['product_id' => 'id']);
+        return $this->hasMany(CartItem::className(), ['product_id' => 'id']);
     }
 
     /**
      * Gets query for [[OrderItems]].
      *
-     * @return \yii\db\ActiveQuery|\common\models\query\OrderItemsQuery
+     * @return \yii\db\ActiveQuery|\common\models\query\OrderItemQuery
      */
     public function getOrderItems()
     {
-        return $this->hasMany(OrderItems::className(), ['product_id' => 'id']);
+        return $this->hasMany(OrderItem::className(), ['product_id' => 'id']);
     }
 
     /**
@@ -134,55 +135,62 @@ class Product extends \yii\db\ActiveRecord
     {
         return new \common\models\query\ProductQuery(get_called_class());
     }
-    
+
     public function save($runValidation = true, $attributeNames = null) {
-                
+
         if($this->imageFile) {
             $this->image = '/products/'.
                     Yii::$app->security->generateRandomString(32).
                     '/'.$this->imageFile->name;
         }
-        
+
         $transaction = Yii::$app->db->beginTransaction();
         $ok = parent::save($runValidation, $attributeNames);
-        
+
         if($ok && $this->imageFile) {
             $fullPath = Yii::getAlias('@frontend/web/storage'.$this->image);
             $dir = dirname($fullPath);
             if(!\yii\helpers\FileHelper::createDirectory($dir) || !$this->imageFile->saveAs($fullPath)) {
                 $transaction->rollBack();
                 return false;
-            }                                    
-                        
+            }
+
         }
-            
+
         $transaction->commit();
         return $ok;
-                  
+
     }
-    
+
     public function getImageUrl() {
-        
-        return self::formatImageUrl($this->image);                
-        
+
+        return self::formatImageUrl($this->image);
+
     }
-    
+
     public static function formatImageUrl($imagePath) {
-        
+
         if($imagePath) {
             return Yii::$app->params['frontendUrl'].'/storage'.$imagePath;
         }
-        
+
         return Yii::$app->params['frontendUrl'].'/img/no_image_available.png';
-        
+
     }
-    
+
     public function getShortDescription() {
-        
+
         return \yii\helpers\StringHelper::truncateWords(strip_tags($this->description), 30);
-        
+
     }
-    
-    
-    
+
+    public function afterDelete()
+    {
+        parent::afterDelete();
+        if ($this->image) {
+            $dir = Yii::getAlias('@frontend/web/storage'). dirname($this->image);
+            FileHelper::removeDirectory($dir);
+        }
+    }
+
 }
