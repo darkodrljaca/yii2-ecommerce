@@ -8,6 +8,7 @@ use backend\models\search\OrderSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
 
 /**
  * OrderController implements the CRUD actions for Order model.
@@ -20,8 +21,19 @@ class OrderController extends Controller
     public function behaviors()
     {
         return [
+          'access' => [
+              'class' => AccessControl::class,
+              'rules' => [
+                  [
+                    // only autorised user can access:
+                      'actions' => ['index', 'view', 'update'],
+                      'allow' => true,
+                      'roles' => ['@'],
+                  ],
+              ],
+          ],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['POST'],
                 ],
@@ -60,7 +72,7 @@ class OrderController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-        
+
         if(Yii::$app->request->isPost) {
             $status = Yii::$app->request->post('Order')['status'];
             $model->status = $status;
@@ -68,26 +80,12 @@ class OrderController extends Controller
                 $model->addError('status', 'Invalid Status');
             } else if($model->save()) {
                 return $this->redirect(['view', 'id' => $model->id]);
-            }            
+            }
         }
-        
+
         return $this->render('update', [
             'model' => $model,
         ]);
-    }
-
-    /**
-     * Deletes an existing Order model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionDelete($id)
-    {
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['index']);
     }
 
     /**

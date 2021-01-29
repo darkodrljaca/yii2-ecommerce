@@ -8,6 +8,7 @@ use backend\models\search\ProductSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
 
 /**
  * ProductController implements the CRUD actions for Product model.
@@ -20,8 +21,19 @@ class ProductController extends Controller
     public function behaviors()
     {
         return [
+            'access' => [
+                'class' => AccessControl::class,
+                'rules' => [
+                    [
+                      // only autorised user can access:
+                        'actions' => ['index', 'view', 'update', 'create', 'delete'],
+                        'allow' => true,
+                        'roles' => ['@'],
+                    ],
+                ],
+            ],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['POST'],
                 ],
@@ -65,7 +77,7 @@ class ProductController extends Controller
     public function actionCreate()
     {
         $model = new Product();
-        $model->imageFile = \yii\web\UploadedFile::getInstance($model, 'imageFile');                
+        $model->imageFile = \yii\web\UploadedFile::getInstance($model, 'imageFile');
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
