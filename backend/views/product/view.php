@@ -13,7 +13,7 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="product-view">
 
-    <h1><?= Html::encode($this->title) ?></h1>
+    <h3><?= Html::encode($this->title) ?></h3>
 
     <p>
         <?= Html::a('Update', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
@@ -36,10 +36,13 @@ $this->params['breadcrumbs'][] = $this->title;
                 'value' => function($model) {
                     /** @var \common\models\Product $model */
                                 return \yii\bootstrap4\Html::img($model->getImageUrl(), ['style' => 'width: 50px']);
-                            },                        
+                            },
             ],
-            'name',
-            'description:html',                                               
+            [
+              'attribute' => 'name',
+              'style' => 'white-space: normal'
+            ],
+            'description:html',
             'price:currency',
             [
                 'attribute' => 'status',
@@ -49,7 +52,7 @@ $this->params['breadcrumbs'][] = $this->title;
                                 return \yii\bootstrap4\Html::tag('span', $model->status ? 'Active' : 'Draft', [
                                     'class' => $model->status ? 'badge badge-success' : 'badge badge-danger'
                                 ]);
-                                
+
                              }
             ],
             'created_at:datetime',

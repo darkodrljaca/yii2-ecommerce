@@ -1,6 +1,7 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\StringHelper;
 use yii\grid\GridView;
 
 /* @var $this yii\web\View */
@@ -20,55 +21,69 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
-    <?= GridView::widget([
-        'dataProvider' => $dataProvider,
-        'filterModel' => $searchModel,
-        'columns' => [
-            // ['class' => 'yii\grid\SerialColumn'],
-            [
-                'attribute' => 'id',
-                'contentOptions' => [
-                    'style' => 'width: 60px'
-                ]
-            ],
-            [
-                'label' => 'Image',
-                'attribute' => 'image',
+    <div class="table-responsive">
+      <?= GridView::widget([
+          'dataProvider' => $dataProvider,
+          'filterModel' => $searchModel,
+          'columns' => [
+              // ['class' => 'yii\grid\SerialColumn'],
+              [
+                  'attribute' => 'id',
+                  'contentOptions' => [
+                      'style' => 'width: 60px'
+                  ]
+              ],
+              [
+                  'label' => 'Image',
+                  'attribute' => 'image',
+                  'content' => function($model) {
+          /** @var \common\models\Product $model */
+                      return \yii\bootstrap4\Html::img($model->getImageUrl(), ['style' => 'width: 50px']);
+                  }
+              ],
+              [
+                'attribute' => 'name',
                 'content' => function($model) {
-        /** @var \common\models\Product $model */
-                    return \yii\bootstrap4\Html::img($model->getImageUrl(), ['style' => 'width: 50px']);
+                  return StringHelper::truncateWords($model->name, 7);
                 }
-            ],
-            'name',                        
-            'price:currency',
-             // 'status',       
-            [
-                'attribute' => 'status',
-                'content' => function($model) {
-                                /** @var \common\models\Product $model */
-                                return \yii\bootstrap4\Html::tag('span', $model->status ? 'Active' : 'Draft', [
-                                    'class' => $model->status ? 'badge badge-success' : 'badge badge-danger'
-                                ]);
-                                
-                             }
-            ],
-            [
-                'attribute' => 'created_at',
-                'format' => ['datetime'],
-                'contentOptions' => ['style' => 'white-space: nowrap']
-            ],
-            [
-                'attribute' => 'updated_at',
-                'format' => ['datetime'],
-                'contentOptions' => ['style' => 'white-space: nowrap']
-            ],                                        
-            
-            //'created_by',
-            //'updated_by',
+              ],
+              'price:currency',
+               // 'status',
+              [
+                  'attribute' => 'status',
+                  'content' => function($model) {
+                                  /** @var \common\models\Product $model */
+                                  return \yii\bootstrap4\Html::tag('span', $model->status ? 'Active' : 'Draft', [
+                                      'class' => $model->status ? 'badge badge-success' : 'badge badge-danger'
+                                  ]);
 
-            ['class' => 'common\grid\ActionColumn'],
-        ],
-    ]); ?>
+                               }
+              ],
+              [
+                  'attribute' => 'created_at',
+                  'format' => ['datetime'],
+                  'contentOptions' => ['style' => 'white-space: nowrap']
+              ],
+              [
+                  'attribute' => 'updated_at',
+                  'format' => ['datetime'],
+                  'contentOptions' => ['style' => 'white-space: nowrap']
+              ],
+
+              //'created_by',
+              //'updated_by',
+
+              [
+                'class' => 'common\grid\ActionColumn',
+                'contentOptions' => [
+                  'class' => 'td-actions'
+                ],
+              ],
+          ],
+      ]); ?>
+    </div>
+
+
 
 
 </div>

@@ -25,15 +25,15 @@ use dosamigos\ckeditor\CKEditor;
     <?= $form->field($model, 'description')->widget(CKEditor::className(),[
         'options' => ['rows' => 6],
         'preset' => 'basic'
-    ]) ?>    
+    ]) ?>
 
     <?= $form->field($model, 'imageFile', [
-        'template' => 
+        'template' =>
           '
             <div class="custom-file">
-              {input} 
-              {label} 
-              {error}             
+              {input}
+              {label}
+              {error}
             </div>
           ',
         'inputOptions' => ['class' => 'custom-file-input'],
@@ -42,7 +42,8 @@ use dosamigos\ckeditor\CKEditor;
 
     <?= $form->field($model, 'price')->textInput([
         'maxlength' => true,
-       // 'type' => 'number'
+        'type' => 'number',
+        'step' => '0.01'
         ]) ?>
 
     <?= $form->field($model, 'status')->checkbox() ?>

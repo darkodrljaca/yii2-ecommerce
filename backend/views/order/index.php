@@ -12,8 +12,8 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="order-index">
 
-    <h1><?= Html::encode($this->title) ?></h1>    
-     
+    <h1><?= Html::encode($this->title) ?></h1>
+
 
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
@@ -28,14 +28,14 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'id',
                 'contentOptions' => ['style' => 'width: 80px;']
-            ],            
+            ],
             [
-              'attribute' => 'fullname',  
+              'attribute' => 'fullname',
               'content' => function($model) {
                     return $model->firstname . ' ' . $model->lastname;
-              },                      
+              },
             ],
-            'total_price:currency',            
+            'total_price:currency',
             //'email:email',
             //'transaction_id',
             //'paypal_order_id',
@@ -52,7 +52,10 @@ $this->params['breadcrumbs'][] = $this->title;
 
             [
                 'class' => 'common\grid\ActionColumn',
-                'template' => '{view} {update} {delete}'
+                'template' => '{view} {update} {delete}',
+                'contentOptions' => [
+                  'class' => 'td-actions',
+                ],
             ],
         ],
     ]); ?>
