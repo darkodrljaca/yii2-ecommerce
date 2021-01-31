@@ -32,7 +32,7 @@ class User extends ActiveRecord implements IdentityInterface
     const STATUS_DELETED = 0;
     const STATUS_INACTIVE = 9;
     const STATUS_ACTIVE = 10;
-    
+
     const SCENARIO_UPDATE = 'update';
 
 
@@ -57,13 +57,13 @@ class User extends ActiveRecord implements IdentityInterface
             TimestampBehavior::className(),
         ];
     }
-    
+
     public function scenarios() {
-        
+
         return array_merge(parent::scenarios(),[
             // fields that can be updated:
-            self::SCENARIO_UPDATE => ['firstname', 'lastname', 'email', 
-                'username', 'password', 'password_repeat']          
+            self::SCENARIO_UPDATE => ['firstname', 'lastname', 'email',
+                'username', 'password', 'password_repeat']
         ]);
     }
 
@@ -80,7 +80,9 @@ class User extends ActiveRecord implements IdentityInterface
             ['password', 'string', 'min' => 8],
             // admin works only in default scenario
             ['admin', 'default', 'value' => 0],
-            ['password_repeat', 'compare', 'compareAttribute' => 'password']
+            ['password_repeat', 'compare', 'compareAttribute' => 'password'],
+            ['username', 'unique', 'targetClass' => self::class, 'message' => 'This username has already been taken.'],
+            ['email', 'unique', 'targetClass' => self::class, 'message' => 'This email address has already been taken.'],
         ];
     }
 
@@ -235,29 +237,29 @@ class User extends ActiveRecord implements IdentityInterface
     {
         $this->password_reset_token = null;
     }
-    
+
     public function getDisplayName() {
-        
+
         $fullName = trim($this->firstname.' '.$this->lastname);
         return $fullName ?: $this->email;
-        
+
     }
-    
+
     public function getAddresses() {
-        
+
         return $this->hasMany(\common\models\UserAddress::class, ['user_id' => 'id']);
-        
+
     }
-    
+
     public function getAddress() {
-        
+
         // Ako ne nadjes ni jednu adresu napravi novu:
         $address = $this->addresses[0] ?? new UserAddress();
         $address->user_id = $this->id;
         return $address;
-        
+
     }
-    
+
     public function afterValidate() {
         parent::afterValidate();
         if($this->password) {
