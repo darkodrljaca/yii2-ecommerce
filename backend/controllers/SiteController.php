@@ -10,6 +10,7 @@ use common\models\Order;
 use common\models\OrderItem;
 use common\models\User;
 use backend\models\PasswordResetRequestForm;
+use backend\models\ResetPasswordForm;
 
 /**
  * Site controller
@@ -27,7 +28,7 @@ class SiteController extends Controller
                 'rules' => [
                     [
                         // allow for everybody:
-                        'actions' => ['login', 'forgot-password', 'error'],
+                        'actions' => ['login', 'forgot-password', 'reset-password', 'error'],
                         'allow' => true,
                     ],
                     [
@@ -186,26 +187,23 @@ class SiteController extends Controller
         return $this->goHome();
     }
 
-    public function actionForgotPassword() {
+    public function actionForgotPassword()
+    {
+        $this->layout = 'blank';
+        $model = new PasswordResetRequestForm();
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            if ($model->sendEmail()) {
+                Yii::$app->session->setFlash('success', 'Check your email for further instructions.');
 
-      $this->layout = 'blank';
+                return $this->goHome();
+            } else {
+                Yii::$app->session->setFlash('error', 'Sorry, we are unable to reset password for the provided email address.');
+            }
+        }
 
-      $model = new PasswordResetRequestForm();
-
-      if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-          if ($model->sendEmail()) {
-              Yii::$app->session->setFlash('success', 'Check your email for further instructions.');
-
-              return $this->goHome();
-          } else {
-              Yii::$app->session->setFlash('error', 'Sorry, we are unable to reset password for the provided email address.');
-          }
-      }
-
-      return $this->render('forgot_password', [
-          'model' => $model,
-      ]);
-
+        return $this->render('forgot_password', [
+            'model' => $model,
+        ]);
     }
 
     /**
