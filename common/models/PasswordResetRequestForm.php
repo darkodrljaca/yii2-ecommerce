@@ -60,11 +60,7 @@ class PasswordResetRequestForm extends Model
             ->send();
     }
 
-    /**
-     *
-     * @return \common\models\User|null
-     * @author Zura Sekhniashvili <zurasekhniashvili@gmail.com>
-     */
+    
     protected function findUser()
     {
         return User::findOne([

@@ -1,22 +1,11 @@
 <?php
-/**
- * User: TheCodeholic
- * Date: 4/25/2020
- * Time: 10:44 AM
- */
-
 namespace common\grid;
 
 
 use Yii;
 use yii\helpers\Html;
 
-/**
- * Class ActionColumn
- *
- * @author  Zura Sekhniashvili <zurasekhniashvili@gmail.com>
- * @package app\grid
- */
+
 class ActionColumn extends \yii\grid\ActionColumn
 {
 
